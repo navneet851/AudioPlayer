@@ -1,18 +1,22 @@
 package com.android.music.audioplayer
 
 import android.content.Context
+import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import kotlinx.coroutines.flow.emptyFlow
 import java.io.File
 
     fun getLocalAudioFiles(context: Context) : List<AudioMetaData>{
         val audioFiles = mutableListOf<AudioMetaData>()
+        audioFiles.add(AudioMetaData("nav", "bar", File("fvfv"), 233))
         val projection = arrayOf(
             MediaStore.Audio.AudioColumns._ID,
             MediaStore.Audio.AudioColumns.TITLE,
             MediaStore.Audio.AudioColumns.ARTIST,
             MediaStore.Audio.AudioColumns.DATA,
             MediaStore.Audio.AudioColumns.DURATION,
+            MediaStore.Audio.AudioColumns.ALBUM_ARTIST
         )
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
@@ -24,18 +28,22 @@ import java.io.File
             null,
             sortOrder
         )?.use { cursor ->
-            val titleColumn = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.TITLE)
-            val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.ARTIST)
-            Log.d("MediaStofdfrdde", "Title: $artistColumn")
-            val fileColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.DATA)
-            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.DURATION)
+
+            val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.TITLE)
+
+            val artistColumn = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ARTIST)
+
+            val fileColumn = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.DATA)
+
+            val durationColumn = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.DURATION)
+
             while (cursor.moveToNext()){
                 val title = cursor.getString(titleColumn)
-                Log.d("MediaStorestring", title)
                 val artist = cursor.getString(artistColumn)
                 val filePath = cursor.getString(fileColumn)
                 val duration = cursor.getLong(durationColumn)
                 audioFiles.add(AudioMetaData(title, artist, File(filePath), duration))
+                println(audioFiles)
             }
         }
         return audioFiles

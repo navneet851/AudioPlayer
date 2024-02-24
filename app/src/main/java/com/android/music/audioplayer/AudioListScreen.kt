@@ -1,6 +1,15 @@
 package com.android.music.audioplayer
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,34 +20,44 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
-@Preview
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun AudioListScreen() {
-    val context = LocalContext.current
-    val audioFiles = remember{
+fun AudioListScreen(context : Context) {
+    var audioFiles = remember {
         getLocalAudioFiles(context)
     }
-    LazyColumn(){
-        items(audioFiles){ audioFile ->
-            AudioFileListItem(audioFile = audioFile)
-            Log.d("AudioFiles", "AudioFile $audioFile")
+
+
+
+
+        LazyColumn() {
+            items(audioFiles) { audioFile ->
+                AudioFileListItem(audioFile = audioFile)
+            }
         }
     }
-}
 
 
 @Composable
@@ -55,7 +74,7 @@ fun AudioFileListItem(audioFile : AudioMetaData) {
             contentScale = ContentScale.Crop,
             contentDescription = "")
         Column(modifier = Modifier.padding(start = 10.dp)) {
-            Text(text = audioFile.title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold )
+            Text(text = audioFile.title, color = Color.Black, fontSize = 15.sp, fontWeight = FontWeight.Bold )
             Text(text = audioFile.artist, color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
     }
