@@ -9,7 +9,6 @@ import java.io.File
 
     fun getLocalAudioFiles(context: Context) : List<AudioMetaData>{
         val audioFiles = mutableListOf<AudioMetaData>()
-        audioFiles.add(AudioMetaData("nav", "bar", File("fvfv"), 233))
         val projection = arrayOf(
             MediaStore.Audio.AudioColumns._ID,
             MediaStore.Audio.AudioColumns.TITLE,

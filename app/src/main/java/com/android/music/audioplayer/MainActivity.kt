@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -32,12 +33,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             val context = LocalContext.current
+            var player : ExoPlayer? = null
+            player = ExoPlayer.Builder(context).build()
             NavHost(navController = navController, startDestination = "home" ){
                composable("home"){
                    MainCompose(context, navController)
                }
                 composable("list"){
-                    AudioListScreen(context = context)
+                    AudioListScreen(context = context, navController, player!!)
+                }
+                composable("player"){
+                    PlayerScreen(player!!)
                 }
             }
 
