@@ -2,6 +2,7 @@ package com.android.music.audioplayer
 
 import android.content.Context
 import android.provider.MediaStore
+import android.util.Log
 import java.io.File
 
     fun getLocalAudioFiles(context: Context) : List<Song>{
@@ -33,13 +34,16 @@ import java.io.File
 
             val durationColumn = cursor.getColumnIndex(MediaStore.Audio.AudioColumns.DURATION)
 
+            var songIndex = 0
             while (cursor.moveToNext()){
                 val title = cursor.getString(titleColumn)
                 val artist = cursor.getString(artistColumn)
                 val filePath = cursor.getString(fileColumn)
                 val duration = cursor.getLong(durationColumn)
-                audioFiles.add(Song(title, artist, File(filePath), duration))
-                println(audioFiles)
+
+                audioFiles.add(Song(title, artist, File(filePath), duration, songIndex))
+                songIndex++
+
             }
         }
         return audioFiles

@@ -13,7 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -21,16 +21,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
 
-
-
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -38,18 +36,24 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val context = LocalContext.current
             var player : ExoPlayer? = null
+
             player = ExoPlayer.Builder(context).build()
 
 
-            NavHost(navController = navController, startDestination = "home" ){
-               composable("home"){
-                   MainCompose(context, navController)
-               }
+            NavHost(navController = navController, startDestination = "list" ){
+
                 composable("list"){
                     AudioListScreen(context = context, navController, player)
                 }
-                composable("player"){
-                    PlayerScreen(navController, player)
+                composable(
+                    route = "player/{songIndex}",
+                    arguments = listOf(
+                        navArgument("songIndex"){
+                            type = NavType.IntType
+                        }
+                    )
+                ){
+                    PlayerScreen(navController, player, context, it.arguments!!.getInt("songIndex"))
                 }
             }
 
@@ -61,35 +65,4 @@ class MainActivity : ComponentActivity() {
 }
 
 
-@Composable
-fun MainCompose(context: Context, navController: NavController) {
-
-    val REQUEST_CODE_READ_AUDIO = 101
-    fun requestReadAudioPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Android 13 and above: Request READ_MEDIA_AUDIO
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.READ_MEDIA_AUDIO), REQUEST_CODE_READ_AUDIO)
-            }
-            else{
-                navController.navigate("list")
-            }
-        } else {
-            // Below Android 13: Request READ_EXTERNAL_STORAGE
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_CODE_READ_AUDIO)
-            }
-            else{
-                navController.navigate("list")
-            }
-        }
-    }
-    Button(onClick = {
-        requestReadAudioPermission()
-
-
-    }) {
-        Text(text = "referfr")
-    }
-}
 

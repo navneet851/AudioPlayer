@@ -2,6 +2,9 @@ package com.android.music.audioplayer
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,11 +40,15 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 
 @Composable
-fun PlayerScreen(navController: NavController, player: ExoPlayer) {
+fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Context, songIndex : Int) {
 
+    val audioFiles = remember {
+        getLocalAudioFiles(context)
+    }
     Column(modifier = Modifier
         .fillMaxSize()
         .background(Color.Gray)) {
@@ -55,7 +63,7 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer) {
             contentScale = ContentScale.Crop,
             contentDescription = "")
         Spacer(modifier = Modifier.padding(30.dp))
-        PlayerInfo()
+        PlayerInfo(audioFiles[songIndex].title, audioFiles[songIndex].artist)
 //        Slider(
 //            modifier = Modifier
 //                .height(20.dp)
@@ -67,7 +75,7 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer) {
 //            valueRange = 0f..1f
 //        )
         Spacer(modifier = Modifier.padding(16.dp))
-        PlayerFull(player)
+        PlayerFull(player, context, navController, audioFiles, songIndex)
         PlayerEndInfo()
     }
 }
@@ -91,15 +99,15 @@ fun PlayerTopBar(navController: NavController) {
 }
 
 @Composable
-fun PlayerInfo() {
+fun PlayerInfo(albumName : String, singerName : String) {
     Row(verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp)){
         Column {
-            Text(text = "Album Name", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text(text = "singer name", color = Color.White, fontSize = 15.sp)
+            Text(text = albumName, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(text = singerName, color = Color.White, fontSize = 15.sp)
         }
         Row(horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.width(90.dp)) {
@@ -142,12 +150,22 @@ fun PlayerEndInfo() {
 }
 
 @Composable
-fun PlayerFull(player: ExoPlayer) {
+fun PlayerFull(player: ExoPlayer, context: Context, navController: NavController,songList : List<Song>, songIndex : Int) {
+
     var isPlaying by remember{
         mutableStateOf(true)
     }
+    var currentSongIndex by remember {
+        mutableStateOf(songIndex)
+    }
 
+    fun playSong(song : Song, context: Context) {
+        val mediaItem = MediaItem.fromUri(Uri.fromFile(song.filePath))
+        player!!.setMediaItem(mediaItem)
+        player!!.prepare()
+        player!!.playWhenReady = true
 
+    }
     Row(verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
@@ -163,7 +181,11 @@ fun PlayerFull(player: ExoPlayer) {
             contentDescription = "")
         Icon(
             modifier = Modifier
-                .size(35.dp),
+                .size(35.dp)
+                .clickable {
+                    currentSongIndex -= 1
+                    playSong(songList[currentSongIndex], context)
+                },
             tint = Color.White,
             painter = painterResource(id = R.drawable.ic_player_back),
             contentDescription = "")
@@ -173,11 +195,10 @@ fun PlayerFull(player: ExoPlayer) {
                 .clip(RoundedCornerShape(100.dp))
                 .background(Color.White)
                 .clickable {
-                    if (isPlaying){
+                    if (isPlaying) {
                         player.pause()
                         isPlaying = false
-                    }
-                    else{
+                    } else {
                         player.play()
                         isPlaying = true
                     }
@@ -197,7 +218,11 @@ fun PlayerFull(player: ExoPlayer) {
 
         Icon(
             modifier = Modifier
-                .size(35.dp),
+                .size(35.dp)
+                .clickable {
+                    currentSongIndex += 1
+                    playSong(songList[currentSongIndex], context)
+                },
             tint = Color.White,
             painter = painterResource(id = R.drawable.ic_player_skip),
             contentDescription = "")
