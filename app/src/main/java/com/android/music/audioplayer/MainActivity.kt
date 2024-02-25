@@ -12,6 +12,10 @@ import androidx.annotation.RequiresApi
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -35,15 +39,17 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             var player : ExoPlayer? = null
             player = ExoPlayer.Builder(context).build()
+
+
             NavHost(navController = navController, startDestination = "home" ){
                composable("home"){
                    MainCompose(context, navController)
                }
                 composable("list"){
-                    AudioListScreen(context = context, navController, player!!)
+                    AudioListScreen(context = context, navController, player)
                 }
                 composable("player"){
-                    PlayerScreen(player!!)
+                    PlayerScreen(navController, player)
                 }
             }
 

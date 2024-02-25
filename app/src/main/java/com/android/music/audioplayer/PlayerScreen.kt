@@ -12,16 +12,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,38 +31,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
-import com.android.music.audioplayer.R
 
 
 @Composable
-fun PlayerScreen(player: ExoPlayer) {
-    var sliderPosition = remember{
-        mutableStateOf(0f)
-    }
+fun PlayerScreen(navController: NavController, player: ExoPlayer) {
 
-
-
-//        fun stopPlayback() {
-//            player?.stop()
-//            currentPlayingSong = null
-//            isPlaying = false
-//        }
-//        fun seekTo(position: Long) {
-//            if (player != null && position >= 0) {
-//                player?.seekTo(position)
-//            }
-//        }
     Column(modifier = Modifier
-        .fillMaxSize()) {
-        PlayerTopBar()
+        .fillMaxSize()
+        .background(Color.Gray)) {
+        PlayerTopBar(navController)
         Spacer(modifier = Modifier.padding(16.dp))
         Image(
             modifier = Modifier
@@ -72,22 +56,23 @@ fun PlayerScreen(player: ExoPlayer) {
             contentDescription = "")
         Spacer(modifier = Modifier.padding(30.dp))
         PlayerInfo()
-        Slider(
-            modifier = Modifier
-                .height(20.dp)
-                .padding(20.dp),
-            value = sliderPosition.value,
-            onValueChange = {
-                sliderPosition.value = it
-            },
-        )
+//        Slider(
+//            modifier = Modifier
+//                .height(20.dp)
+//                .padding(20.dp),
+//            value = currentPosition.toFloat() / duration.toFloat(),
+//            onValueChange = {value ->
+//                seekTo(value.toLong() * (duration ?: 0L))
+//            },
+//            valueRange = 0f..1f
+//        )
         Spacer(modifier = Modifier.padding(16.dp))
         PlayerFull(player)
         PlayerEndInfo()
     }
 }
 @Composable
-fun PlayerTopBar() {
+fun PlayerTopBar(navController: NavController) {
     Row(verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
             .fillMaxWidth()
@@ -95,7 +80,7 @@ fun PlayerTopBar() {
     ) {
         Icon(modifier = Modifier
             .clickable {
-               // navController.navigate("list")
+               navController.navigate("list")
             },
             painter = painterResource(id = R.drawable.ic_down),
             tint = Color.White,
@@ -157,21 +142,19 @@ fun PlayerEndInfo() {
 }
 
 @Composable
-fun PlayerFull(player : ExoPlayer) {
-    var currentPlayingSong : AudioMetaData? = null
-    var isPlaying = false
-    fun pausePlayback() {
-        if (player?.isPlaying == true) {
-            player?.pause()
-            isPlaying = false
-        }
+fun PlayerFull(player: ExoPlayer) {
+    var isPlaying by remember{
+        mutableStateOf(true)
     }
+
+
     Row(verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp)
     ) {
+
         Icon(
             modifier = Modifier
                 .size(25.dp),
@@ -188,17 +171,27 @@ fun PlayerFull(player : ExoPlayer) {
             modifier = Modifier
                 .size(65.dp)
                 .clip(RoundedCornerShape(100.dp))
-                .background(Color.White),
+                .background(Color.White)
+                .clickable {
+                    if (isPlaying){
+                        player.pause()
+                        isPlaying = false
+                    }
+                    else{
+                        player.play()
+                        isPlaying = true
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 modifier = Modifier
-                    .size(32.dp)
-                    .clickable {
-                        pausePlayback()
-                    },
+                    .heightIn(32.dp),
                 tint = Color.Black,
-                painter = painterResource(id = R.drawable.ic_playing),
+                painter = if (isPlaying)
+                    painterResource(id = R.drawable.ic_playing)
+                else
+                    painterResource(id = R.drawable.ic_paused),
                 contentDescription = "")
         }
 

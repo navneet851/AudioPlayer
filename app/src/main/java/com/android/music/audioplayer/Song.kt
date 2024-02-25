@@ -2,7 +2,7 @@ package com.android.music.audioplayer
 
 import java.io.File
 
-data class AudioMetaData(
+data class Song(
     val title : String,
     val artist : String,
     val filePath : File,

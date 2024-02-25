@@ -1,14 +1,11 @@
 package com.android.music.audioplayer
 
 import android.content.Context
-import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
-import kotlinx.coroutines.flow.emptyFlow
 import java.io.File
 
-    fun getLocalAudioFiles(context: Context) : List<AudioMetaData>{
-        val audioFiles = mutableListOf<AudioMetaData>()
+    fun getLocalAudioFiles(context: Context) : List<Song>{
+        val audioFiles = mutableListOf<Song>()
         val projection = arrayOf(
             MediaStore.Audio.AudioColumns._ID,
             MediaStore.Audio.AudioColumns.TITLE,
@@ -41,7 +38,7 @@ import java.io.File
                 val artist = cursor.getString(artistColumn)
                 val filePath = cursor.getString(fileColumn)
                 val duration = cursor.getLong(durationColumn)
-                audioFiles.add(AudioMetaData(title, artist, File(filePath), duration))
+                audioFiles.add(Song(title, artist, File(filePath), duration))
                 println(audioFiles)
             }
         }
