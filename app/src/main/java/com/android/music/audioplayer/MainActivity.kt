@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -55,7 +56,6 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val context = LocalContext.current
             var player : ExoPlayer? = null
-
             player = ExoPlayer.Builder(context).build()
 
 
@@ -122,7 +122,7 @@ fun SplashScreen(navController: NavController, context : Context) {
             .fillMaxSize()
             .background(Color.DarkGray)){
         Icon(
-            imageVector = Icons.Filled.PlayArrow,
+            painter = painterResource(id = R.drawable.ic_devices),
             contentDescription = "logo",
             tint = Color.Blue,
             modifier = Modifier.size(200.dp)
