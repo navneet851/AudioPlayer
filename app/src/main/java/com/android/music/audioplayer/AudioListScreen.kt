@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,30 +41,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun AudioListScreen(context: Context, navController: NavController, player: ExoPlayer ){
-    val REQUEST_CODE_READ_AUDIO = 101
-    fun requestReadAudioPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Android 13 and above: Request READ_MEDIA_AUDIO
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.READ_MEDIA_AUDIO), REQUEST_CODE_READ_AUDIO)
-            }
 
-        } else {
-            // Below Android 13: Request READ_EXTERNAL_STORAGE
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_CODE_READ_AUDIO)
-            }
-//            else{
-//                navController.navigate("list")
-//            }
-        }
-    }
-    LaunchedEffect(Unit){
-        requestReadAudioPermission()
-    }
     val audioFiles = remember {
         getLocalAudioFiles(context)
     }
+
     fun playSong(song : Song, context: Context) {
         val mediaItem = MediaItem.fromUri(Uri.fromFile(song.filePath))
         player!!.setMediaItem(mediaItem)

@@ -3,9 +3,13 @@ package com.android.music.audioplayer
 import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import java.io.File
 
     fun getLocalAudioFiles(context: Context) : List<Song>{
+
+
         val audioFiles = mutableListOf<Song>()
         val projection = arrayOf(
             MediaStore.Audio.AudioColumns._ID,
@@ -43,7 +47,6 @@ import java.io.File
 
                 audioFiles.add(Song(title, artist, File(filePath), duration, songIndex))
                 songIndex++
-
             }
         }
         return audioFiles

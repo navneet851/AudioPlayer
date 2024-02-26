@@ -9,14 +9,27 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.media3.exoplayer.ExoPlayer
@@ -26,6 +39,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.security.AccessController.checkPermission
 
 class MainActivity : ComponentActivity() {
 
@@ -40,8 +59,11 @@ class MainActivity : ComponentActivity() {
             player = ExoPlayer.Builder(context).build()
 
 
-            NavHost(navController = navController, startDestination = "list" ){
+            NavHost(navController = navController, startDestination = "splash" ){
 
+                composable("splash"){
+                    SplashScreen(navController = navController, context = context)
+                }
                 composable("list"){
                     AudioListScreen(context = context, navController, player)
                 }
@@ -64,5 +86,47 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun SplashScreen(navController: NavController, context : Context) {
+    val REQUEST_CODE_READ_AUDIO = 101
+    fun requestReadAudioPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13 and above: Request READ_MEDIA_AUDIO
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.READ_MEDIA_AUDIO), REQUEST_CODE_READ_AUDIO)
+            }
+            else{
+                navController.navigate("list")
+            }
 
+
+        } else {
+            // Below Android 13: Request READ_EXTERNAL_STORAGE
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(context as Activity, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_CODE_READ_AUDIO)
+            }
+            else{
+                navController.navigate("list")
+            }
+
+        }
+    }
+
+
+    LaunchedEffect(Unit) {
+        requestReadAudioPermission()
+    }
+
+    Box(contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.DarkGray)){
+        Icon(
+            imageVector = Icons.Filled.PlayArrow,
+            contentDescription = "logo",
+            tint = Color.Blue,
+            modifier = Modifier.size(200.dp)
+        )
+    }
+}
 
