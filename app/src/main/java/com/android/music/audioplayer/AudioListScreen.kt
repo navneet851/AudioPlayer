@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,10 +14,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,6 +51,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,12 +62,6 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun AudioListScreen(context: Context, navController: NavController, player: ExoPlayer ){
-//    val view = LocalView.current
-//    val window = (view.context as Activity).window
-//    LaunchedEffect(Unit){
-//        window.statusBarColor = Color.Transparent.toArgb()
-//    }
-
 
     val audioFiles = remember {
         getLocalAudioFiles(context)
@@ -78,7 +78,8 @@ fun AudioListScreen(context: Context, navController: NavController, player: ExoP
 
         LazyColumn(modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF141414))) {
+            .background(Color(0xFF141414))
+            .statusBarsPadding()) {
         items(audioFiles) { song ->
             AudioFileListItem(audioFile = song, navController, context){
                 playSong(song, context)
@@ -101,12 +102,25 @@ fun AudioFileListItem(audioFile : Song, navController: NavController, context: C
                 onSongClick(audioFile)
             }
     ){
-        Image(modifier = Modifier
+        AsyncImage(modifier = Modifier
             .size(60.dp)
-            .clip(RoundedCornerShape(8.dp)),
-            painter = painterResource(id = R.drawable.album),
-            contentScale = ContentScale.Crop,
-            contentDescription = "")
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0x4D242424)),
+            model = if (audioFile.albumArt == null){
+                audioFile.albumArt
+            }
+            else{
+                R.drawable.album
+            },
+            contentDescription = "",
+            contentScale = ContentScale.Crop)
+        Log.d("imageuri", audioFile.albumArt.toString())
+//        Image(modifier = Modifier
+//            .size(60.dp)
+//            .clip(RoundedCornerShape(8.dp)),
+//            painter = audioFile.albumArt,
+//            contentScale = ContentScale.Crop,
+//            contentDescription = "")
         Column(modifier = Modifier.padding(start = 10.dp)) {
             Text(text = audioFile.title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold )
             Text(text = audioFile.artist, color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
