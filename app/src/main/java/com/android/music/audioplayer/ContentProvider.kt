@@ -1,22 +1,22 @@
 package com.android.music.audioplayer
 
-import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import java.io.File
 
-private fun getAlbumArtUri(context: Context, albumId: Long?): Uri? {
+fun getAlbumArtUri(context: Context, albumId: Long?): Uri? {
     if (albumId == null) return null
-
-    val uri = ContentUris.withAppendedId(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumId)
-
-    return uri
+    val bitmap = BitmapFactory.decodeResource(Resources.getSystem(), albumId.toInt())
+print(bitmap)
+    return ContentUris.withAppendedId(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumId)
 }
+
+
 
     fun getLocalAudioFiles(context: Context) : List<Song>{
 
@@ -58,10 +58,12 @@ private fun getAlbumArtUri(context: Context, albumId: Long?): Uri? {
                 val albumId = cursor.getLong(albumIdColumn)
                 val duration = cursor.getLong(durationColumn)
 
-                val albumArtUri = getAlbumArtUri(context, albumId)
-                audioFiles.add(Song(title, artist, File(filePath), duration, songIndex, albumArtUri))
+                val coverUri = getAlbumArtUri(context, albumId)
+
+                audioFiles.add(Song(title, artist, File(filePath), duration, songIndex, coverUri))
                 songIndex++
             }
         }
         return audioFiles
     }
+

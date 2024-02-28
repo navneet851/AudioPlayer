@@ -52,8 +52,8 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,6 +91,7 @@ fun AudioListScreen(context: Context, navController: NavController, player: ExoP
 }
 
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun AudioFileListItem(audioFile : Song, navController: NavController, context: Context, onSongClick : (Song) -> Unit) {
     Row(horizontalArrangement = Arrangement.Start,
@@ -106,21 +107,11 @@ fun AudioFileListItem(audioFile : Song, navController: NavController, context: C
             .size(60.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(Color(0x4D242424)),
-            model = if (audioFile.albumArt == null){
-                audioFile.albumArt
-            }
-            else{
-                R.drawable.album
-            },
+            model = audioFile.albumArt,
             contentDescription = "",
             contentScale = ContentScale.Crop)
-        Log.d("imageuri", audioFile.albumArt.toString())
-//        Image(modifier = Modifier
-//            .size(60.dp)
-//            .clip(RoundedCornerShape(8.dp)),
-//            painter = audioFile.albumArt,
-//            contentScale = ContentScale.Crop,
-//            contentDescription = "")
+        Log.d("duration", audioFile.duration.toString())
+
         Column(modifier = Modifier.padding(start = 10.dp)) {
             Text(text = audioFile.title, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold )
             Text(text = audioFile.artist, color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)

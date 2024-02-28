@@ -1,21 +1,13 @@
 package com.android.music.audioplayer
 
-import android.app.Activity
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
-import android.os.Build
-import android.util.Log
-import android.view.Window
-import android.widget.HorizontalScrollView
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,50 +23,43 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import androidx.palette.graphics.Palette
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.math.roundToInt
-import androidx.compose.ui.platform.AndroidUiDispatcher
+import androidx.compose.ui.text.style.TextAlign
+import androidx.media3.common.Player
+import coil.compose.AsyncImage
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
+import okhttp3.internal.concurrent.formatDuration
 
 
+@OptIn(ExperimentalGlideComposeApi::class)
+@SuppressLint("DiscouragedApi")
 @Composable
 fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Context, songIndex : Int) {
 
@@ -87,21 +72,39 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
     var currentSongIndex by remember {
         mutableStateOf(songIndex)
     }
-
+    var currentPosition by remember { mutableStateOf(0L) }
     var dominantColor by remember { mutableStateOf(Color.Gray) }
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     val resourceId = R.drawable.album
-
-
+        //audioFiles[currentSongIndex].albumArt
     LaunchedEffect(resourceId) {
-         bitmap = withContext(Dispatchers.IO) {
+        bitmap = withContext(Dispatchers.IO) {
             ColorPalette().getBitmapFromImage(context, resourceId)
         }
-             dominantColor = ColorPalette().getDominantColor(bitmap!!.asImageBitmap())
+        dominantColor = ColorPalette().getDominantColor(bitmap!!.asImageBitmap())
 
     }
+    fun playSong(song : Song, context: Context) {
+        val mediaItem = MediaItem.fromUri(Uri.fromFile(song.filePath))
+        player!!.setMediaItem(mediaItem)
+        player!!.prepare()
+        player!!.playWhenReady = true
 
+    }
+    fun formatDuration(millis: Long): String {
+        val minutes = millis / (1000 * 60) % 60 // Get minutes within an hour
+        val seconds = (millis / 1000) % 60 // Get seconds within a minute
 
+        return String.format("%02d:%02d", minutes, seconds) // Format with leading zeroes
+    }
+
+        player.addListener(object : Player.Listener {
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            if (playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING) {
+                currentPosition = player.currentPosition
+            }
+        }
+    })
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -118,44 +121,57 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
     ) {
         PlayerTopBar(navController)
         Spacer(modifier = Modifier.padding(16.dp))
-        Image(
+        AsyncImage(
             modifier = Modifier
-                .height(385.dp)
-                .padding(20.dp)
+                .height(350.dp)
+                .padding(20.dp, 10.dp)
                 .clip(RoundedCornerShape(10.dp))
-            ,painter = painterResource(id = R.drawable.album),
+            ,model = audioFiles[currentSongIndex].albumArt,
             contentScale = ContentScale.Crop,
             contentDescription = "")
-        Spacer(modifier = Modifier.padding(30.dp))
-        PlayerInfo(audioFiles[currentSongIndex].title, audioFiles[currentSongIndex].artist)
-//        Slider(
-//            modifier = Modifier
-//                .height(20.dp)
-//                .padding(20.dp),
-//            value = currentPosition.toFloat() / duration.toFloat(),
-//            onValueChange = {value ->
-//                seekTo(value.toLong() * (duration ?: 0L))
-//            },
-//            valueRange = 0f..1f
-//        )
-        Spacer(modifier = Modifier.padding(16.dp))
-        //
-        //
-        //
-        //
 
-        fun playSong(song : Song, context: Context) {
-            val mediaItem = MediaItem.fromUri(Uri.fromFile(song.filePath))
-            player!!.setMediaItem(mediaItem)
-            player!!.prepare()
-            player!!.playWhenReady = true
+        Spacer(modifier = Modifier.padding(30.dp))
+
+        PlayerInfo(audioFiles[currentSongIndex].title, audioFiles[currentSongIndex].artist)
+
+        Slider(
+            value = currentPosition.toFloat() / player.duration.toFloat(),
+            valueRange = 0f..1f,
+            onValueChange = { newValue ->
+                player.pause()
+                    player.seekTo((newValue * player.duration).toLong())
+                    player.playWhenReady = true
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
+
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp, 0.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically) {
+            LaunchedEffect(currentPosition) { // Trigger on currentPosition change
+                val formattedPosition =
+                    okhttp3.internal.concurrent.formatDuration(currentPosition) // Custom function
+                SecondUpdate()
+            }
+                Text(
+                text = formatDuration(audioFiles[currentSongIndex].duration),
+                color = Color.Gray,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
 
         }
+
+
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(20.dp, 10.dp)
         ) {
 
             Icon(
@@ -232,6 +248,20 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
         PlayerEndInfo()
     }
 }
+
+@Composable
+fun SecondUpdate() {
+
+        Text(
+            text = formattedPosition,
+            color = Color.Gray,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+
+
+
 @Composable
 fun PlayerTopBar(navController: NavController) {
     Row(verticalAlignment = Alignment.CenterVertically,
