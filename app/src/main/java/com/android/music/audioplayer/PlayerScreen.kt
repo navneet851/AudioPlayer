@@ -53,6 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import okhttp3.internal.concurrent.formatDuration
@@ -135,12 +136,13 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
         PlayerInfo(audioFiles[currentSongIndex].title, audioFiles[currentSongIndex].artist)
 
         Slider(
-            value = currentPosition.toFloat() / player.duration.toFloat(),
+            value = player.currentPosition.toFloat() / player.duration.toFloat(),
             valueRange = 0f..1f,
             onValueChange = { newValue ->
-                player.pause()
+                    player.pause()
                     player.seekTo((newValue * player.duration).toLong())
                     player.playWhenReady = true
+
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -152,11 +154,18 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
             .padding(20.dp, 0.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
-            LaunchedEffect(currentPosition) { // Trigger on currentPosition change
-                val formattedPosition =
-                    okhttp3.internal.concurrent.formatDuration(currentPosition) // Custom function
-                SecondUpdate()
+            var currentMillisPosition by remember{
+                mutableStateOf(player.currentPosition)
             }
+            LaunchedEffect(player.currentPosition) {
+                currentMillisPosition = player.currentPosition
+            }
+            Text(
+                text = formatDuration(currentMillisPosition),
+                color = Color.Gray,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
                 Text(
                 text = formatDuration(audioFiles[currentSongIndex].duration),
                 color = Color.Gray,
@@ -248,17 +257,6 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
         PlayerEndInfo()
     }
 }
-
-@Composable
-fun SecondUpdate() {
-
-        Text(
-            text = formattedPosition,
-            color = Color.Gray,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
 
 
 
