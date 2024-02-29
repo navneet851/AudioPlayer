@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -59,6 +61,7 @@ class MainActivity : ComponentActivity() {
             )
         )
         super.onCreate(savedInstanceState)
+        //window.statusBarColor = Color.White.toArgb()
 
         setContent {
             val navController = rememberNavController()
@@ -73,7 +76,7 @@ class MainActivity : ComponentActivity() {
                     SplashScreen(navController = navController, context = context)
                 }
                 composable("list"){
-                    AudioListScreen(context = context, navController, player)
+                    AudioListMainScreen(context = context, navController, player)
                 }
                 composable(
                     route = "player/{songIndex}",
@@ -130,10 +133,12 @@ fun SplashScreen(navController: NavController, context : Context) {
             .fillMaxSize()
             .background(Color(0xFF141414))){
         Icon(
-            painter = painterResource(id = R.drawable.ic_devices),
+            painter = painterResource(id = R.drawable.logo),
             contentDescription = "logo",
-            tint = Color.Blue,
+            tint = Color(0xFF1D0925),
             modifier = Modifier.size(200.dp)
+                .clip(RoundedCornerShape(50))
+                .background(Color.White)
         )
     }
 }

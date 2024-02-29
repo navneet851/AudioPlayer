@@ -121,10 +121,10 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
         .background(
             Brush.verticalGradient(
                 colors = listOf(
-                    Color.Red,
+                    Color(0xFF1D0925),
                     Color.Black
                 ),
-                startY = 250f
+                startY = 300f
             )
         )
         .statusBarsPadding()
@@ -133,7 +133,7 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
         Spacer(modifier = Modifier.padding(16.dp))
         AsyncImage(
             modifier = Modifier
-                .height(350.dp)
+                .height(370.dp)
                 .padding(20.dp, 10.dp)
                 .clip(RoundedCornerShape(10.dp))
             ,model = audioFiles[currentSongIndex].albumArt,
@@ -157,13 +157,13 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
                 currentMillisPosition = player.currentPosition
             },
             colors = SliderDefaults.colors(
-                thumbColor = Color.Black,
+                thumbColor = Color.White,
                 activeTrackColor = Color.White,
                 inactiveTrackColor = Color.Gray,
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp, 0.dp)
         )
 
         Row(modifier = Modifier

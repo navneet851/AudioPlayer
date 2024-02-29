@@ -23,6 +23,7 @@ import kotlinx.coroutines.withContext
 
 
 class ColorPalette {
+
     fun getBitmapFromImage(context: Context, drawable: Int): Bitmap {
         // on below line we are getting drawable
         val db = ContextCompat.getDrawable(context, drawable)
