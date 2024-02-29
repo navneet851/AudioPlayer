@@ -3,6 +3,8 @@ package com.android.music.audioplayer
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,9 +26,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +43,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -51,16 +56,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.media3.common.Player
+import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.internal.concurrent.formatDuration
 
 
 @OptIn(ExperimentalGlideComposeApi::class)
-@SuppressLint("DiscouragedApi")
+@SuppressLint("DiscouragedApi", "UnrememberedMutableState")
 @Composable
 fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Context, songIndex : Int) {
 
@@ -73,18 +83,17 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
     var currentSongIndex by remember {
         mutableStateOf(songIndex)
     }
-    var currentPosition by remember { mutableStateOf(0L) }
-    var dominantColor by remember { mutableStateOf(Color.Gray) }
-    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-    val resourceId = R.drawable.album
-        //audioFiles[currentSongIndex].albumArt
-    LaunchedEffect(resourceId) {
-        bitmap = withContext(Dispatchers.IO) {
-            ColorPalette().getBitmapFromImage(context, resourceId)
-        }
-        dominantColor = ColorPalette().getDominantColor(bitmap!!.asImageBitmap())
 
+
+
+
+    var dominentColor by remember {
+        mutableStateOf(Color.Gray)
     }
+//    LaunchedEffect(uri){
+//        dominentColor = ColorPalette().getDominantColor(bitmapImage)
+//    }
+
     fun playSong(song : Song, context: Context) {
         val mediaItem = MediaItem.fromUri(Uri.fromFile(song.filePath))
         player!!.setMediaItem(mediaItem)
@@ -96,23 +105,23 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
         val minutes = millis / (1000 * 60) % 60 // Get minutes within an hour
         val seconds = (millis / 1000) % 60 // Get seconds within a minute
 
-        return String.format("%02d:%02d", minutes, seconds) // Format with leading zeroes
+        return String.format("%d:%02d", minutes, seconds) // Format with leading zeroes
     }
 
-        player.addListener(object : Player.Listener {
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            if (playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING) {
-                currentPosition = player.currentPosition
-            }
-        }
-    })
+//        player.addListener(object : Player.Listener {
+//        override fun onPlaybackStateChanged(playbackState: Int) {
+//            if (playbackState == Player.STATE_READY || playbackState == Player.STATE_BUFFERING) {
+//                currentPosition = player.currentPosition
+//            }
+//        }
+//    })
 
     Column(modifier = Modifier
         .fillMaxSize()
         .background(
             Brush.verticalGradient(
                 colors = listOf(
-                    dominantColor,
+                    Color.Red,
                     Color.Black
                 ),
                 startY = 250f
@@ -135,15 +144,23 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
 
         PlayerInfo(audioFiles[currentSongIndex].title, audioFiles[currentSongIndex].artist)
 
+        var currentMillisPosition by remember{
+            mutableStateOf(player.currentPosition)
+        }
         Slider(
-            value = player.currentPosition.toFloat() / player.duration.toFloat(),
+            value = currentMillisPosition.toFloat() / player.duration.toFloat(),
             valueRange = 0f..1f,
             onValueChange = { newValue ->
                     player.pause()
                     player.seekTo((newValue * player.duration).toLong())
                     player.playWhenReady = true
-
+                currentMillisPosition = player.currentPosition
             },
+            colors = SliderDefaults.colors(
+                thumbColor = Color.Black,
+                activeTrackColor = Color.White,
+                inactiveTrackColor = Color.Gray,
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -154,21 +171,33 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
             .padding(20.dp, 0.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
-            var currentMillisPosition by remember{
-                mutableStateOf(player.currentPosition)
-            }
-            LaunchedEffect(player.currentPosition) {
+
+            LaunchedEffect(currentMillisPosition) {
+                if (formatDuration(currentMillisPosition) == formatDuration(player.duration)) {
+                    if (currentSongIndex == audioFiles.size - 1) {
+                        currentSongIndex = 0
+                    } else {
+                        currentSongIndex += 1
+                    }
+                    playSong(audioFiles[currentSongIndex], context)
+                    if (!isPlaying) {
+                        isPlaying = true
+                    }
+                }
+                else {
+                    delay(960)
+                }
                 currentMillisPosition = player.currentPosition
             }
             Text(
                 text = formatDuration(currentMillisPosition),
-                color = Color.Gray,
+                color = Color.LightGray,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )
                 Text(
                 text = formatDuration(audioFiles[currentSongIndex].duration),
-                color = Color.Gray,
+                color = Color.LightGray,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -193,11 +222,16 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
                 modifier = Modifier
                     .size(35.dp)
                     .clickable {
-                        currentSongIndex -= 1
-                        playSong(audioFiles[currentSongIndex], context)
-                        if (!isPlaying) {
-                            isPlaying = true
+                        if (currentSongIndex == 0){
+                            currentSongIndex = audioFiles.size-1
                         }
+                        else {
+                            currentSongIndex -= 1
+                        }
+                            playSong(audioFiles[currentSongIndex], context)
+                            if (!isPlaying) {
+                                isPlaying = true
+                            }
                     },
                 tint = Color.White,
                 painter = painterResource(id = R.drawable.ic_player_back),
@@ -209,10 +243,12 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
                     .background(Color.White)
                     .clickable {
                         if (isPlaying) {
+                            currentMillisPosition = player.currentPosition
                             player.pause()
                             isPlaying = false
                         } else {
                             player.play()
+                            currentMillisPosition = player.currentPosition
                             isPlaying = true
                         }
                     },
@@ -233,11 +269,16 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
                 modifier = Modifier
                     .size(35.dp)
                     .clickable {
-                        currentSongIndex += 1
-                        playSong(audioFiles[currentSongIndex], context)
-                        if (!isPlaying) {
-                            isPlaying = true
+                        if (currentSongIndex == audioFiles.size-1){
+                            currentSongIndex = 0
                         }
+                        else {
+                            currentSongIndex += 1
+                        }
+                            playSong(audioFiles[currentSongIndex], context)
+                            if (!isPlaying) {
+                                isPlaying = true
+                            }
                     },
                 tint = Color.White,
                 painter = painterResource(id = R.drawable.ic_player_skip),
