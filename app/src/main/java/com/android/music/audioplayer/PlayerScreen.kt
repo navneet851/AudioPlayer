@@ -124,7 +124,7 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
                     Color.Red,
                     Color.Black
                 ),
-                startY = 250f
+                startY = 300f
             )
         )
         .statusBarsPadding()
@@ -157,13 +157,13 @@ fun PlayerScreen(navController: NavController, player: ExoPlayer, context: Conte
                 currentMillisPosition = player.currentPosition
             },
             colors = SliderDefaults.colors(
-                thumbColor = Color.Black,
+                thumbColor = Color.White,
                 activeTrackColor = Color.White,
                 inactiveTrackColor = Color.Gray,
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp, 0.dp)
         )
 
         Row(modifier = Modifier
